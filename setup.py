@@ -3,7 +3,7 @@ from distutils.core import setup
 setup(
     name="pressure",
     description="Client library for interfacing with Pressure queues.",
-    version=__import__("pressure").__version__,
+    version=str(__import__("pressure").__version__),
     author="Peter Sobot",
     author_email="contact@petersobot.com",
     url="https://github.com/psobot/pressure-python",
