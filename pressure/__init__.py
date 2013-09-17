@@ -226,38 +226,38 @@ class PressureQueue(object):
             allow_unblocking = self.allow_unblocking
 
         self.unblockable_brpop(
-            [self.keys['consumer_free']],
+            [self.keys['producer_free']],
             0,
             allow_unblocking
         )
         try:
-            self._db.set(self.keys['consumer'], self.client_uid)
+            self._db.set(self.keys['producer'], self.client_uid)
             result = self._db.lrange(self.keys['queue'], 0, 0)
             if not result and self._db.exists(self.keys['closed']):
                 self._closed = True
                 raise QueueClosedError()
             return result[0] if result else None
         finally:
-            self._db.lpush(self.keys['consumer_free'], 0)
+            self._db.lpush(self.keys['producer_free'], 0)
 
     @requiresQueueToExist
     def peek_reverse_nowait(self):
-        res = self._db.rpop(self.keys['consumer_free'])
+        res = self._db.rpop(self.keys['producer_free'])
         if res is None:
             raise QueueInUseError(
                 self.name,
-                self._db.get(self.keys['consumer']),
-                'consumer'
+                self._db.get(self.keys['producer']),
+                'producer'
             )
         try:
-            self._db.set(self.keys['consumer'], self.client_uid)
+            self._db.set(self.keys['producer'], self.client_uid)
             result = self._db.lrange(self.keys['queue'], 0, 0)
             if not result and self._db.exists(self.keys['closed']):
                 self._closed = True
                 raise QueueClosedError()
             return result[0] if result else None
         finally:
-            self._db.lpush(self.keys['consumer_free'], 0)
+            self._db.lpush(self.keys['producer_free'], 0)
 
     @requiresQueueToExist
     def put(self, bytes, block=True, timeout=None,
