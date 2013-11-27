@@ -179,8 +179,9 @@ class PressureQueue(object):
                     self._closed = True
                     raise QueueClosedError()
                 else:
-                    self._db.lpush(self.keys['not_full'], 0)
-                    self._db.ltrim(self.keys['not_full'], 0, 0)
+                    if self.bound is None or self.qsize() < self.bound:
+                        self._db.lpush(self.keys['not_full'], 0)
+                        self._db.ltrim(self.keys['not_full'], 0, 0)
 
                     self._db.incr(self.keys['stats:consumed_messages'])
                     self._db.incr(
@@ -204,8 +205,9 @@ class PressureQueue(object):
             self._db.set(self.keys['consumer'], self.client_uid)
             result = self._db.rpop(self.keys['queue'])
 
-            self._db.lpush(self.keys['not_full'], 0)
-            self._db.ltrim(self.keys['not_full'], 0, 0)
+            if self.bound is None or self.qsize() < self.bound:
+                self._db.lpush(self.keys['not_full'], 0)
+                self._db.ltrim(self.keys['not_full'], 0, 0)
 
             if result is not None:
                 self._db.incr(self.keys['stats:consumed_messages'])
